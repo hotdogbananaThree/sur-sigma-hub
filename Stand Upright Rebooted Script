@@ -1,14 +1,18 @@
 local DiscordLib = loadstring(game:HttpGet"https://raw.githubusercontent.com/dawid-scripts/UI-Libs/main/discord%20lib.txt")()
 
-local win = DiscordLib:Window("SUR Sigma Hub V1!")
+local win = DiscordLib:Window("Sigma Hub V1")
 
-local serv = win:Server("Main", "")
+local serv = win:Server("SU:R GUI", "")
 
 local home = serv:Channel("Home")
 
-home:Label("Welcome to SUR Sigma Hub V1!")
+home:Label("Welcome to Sigma Hub V1!")
 
 home:Seperator()
+
+home:Button("About", function()
+	DiscordLib:Notification("About", "Made by hotdogbananaThree | Uses a lot of Arctic Hub's code!", "Ok")
+end)
 
 home:Button("Status", function()
 	DiscordLib:Notification("Current Status", "Working!", "Ok")
@@ -16,11 +20,15 @@ end)
 
 local buttons = serv:Channel("LocalPlayer")
 
+buttons:Label("Shortcuts")
+
 buttons:Button("Open Stand Storage", function()
 	game:GetService("Workspace").Map.NPCs.admpn.Done:FireServer()
 end)
 
 buttons:Seperator()
+
+buttons:Label("Use Items")
 
 buttons:Button("Use Stand Arrow", function()
 	if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Stand Arrow") then
@@ -50,14 +58,16 @@ buttons:Button("Use Rokakaka", function()
 	end
 end)
 
-buttons:Button("Use Rotten Rokakaka", function()
-	if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Rotten Rokakaka") then
-		game:GetService("Players").LocalPlayer.Character.Humanoid:EquipTool(game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Rotten Rokakaka"))
-		game:GetService("Players").LocalPlayer.Character:WaitForChild("Rotten Rokakaka"):WaitForChild("Use"):FireServer()
+buttons:Button("Use DIO's Diary", function()
+	if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Dio's Diary") then
+		game:GetService("Players").LocalPlayer.Character.Humanoid:EquipTool(game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Dio's Diary"))
+		game:GetService("Players").LocalPlayer.Character:WaitForChild("Dio's Diary"):WaitForChild("Use"):FireServer()
 	end
 end)
 
 buttons:Seperator()
+
+buttons:Label("Misc")
 
 local AutoUmbrella = false
 buttons:Toggle("Auto Umbrella", false, function()
@@ -78,8 +88,10 @@ end)
 local lairFarm = serv:Channel("Lair Farm")
 
 lairFarm:Button("Tutorial", function()
-	DiscordLib:Notification("Tutorial", "Step 1 (Quest Selection), Stand Near Lair NPC And Press 'Select Lair NPC'", "Ok")
+	DiscordLib:Notification("Tutorial", "Stand near Lair NPC and press 'Select Lair NPC'", "Ok")
 end)
+
+lairFarm:Seperator()
 
 local SelectedLairNPC
 local SelectedLairNPCText
@@ -157,9 +169,11 @@ local questFarm = serv:Channel("Quest Farm")
 
 questFarm:Button("Tutorial", function()
 	DiscordLib:Notification("Tutorial", "Step 1 (Quest Selection), Stand Near Quest NPC And Press 'Select Quest NPC'", "Ok")
-	task.wait(5)
+	task.wait(0.1)
 	DiscordLib:Notification("Tutorial", "Step 2 (NPC Selection), Stand Near NPC To Kill And Press 'Select NPC", "Ok")
 end)
+
+questFarm:Seperator()
 
 local SelectedQuestNPC
 local SelectedQuestNPCText = "None"
@@ -170,6 +184,8 @@ questFarm:Button("Select Quest NPC", function()
 		if v:FindFirstChild("HumanoidRootPart") then
 			if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude < 15 then
 				SelectedQuestNPC = v
+				
+				DiscordLib:Notification("Success!", "Chosen Quest Giver: " .. v.Name, "Ok")
 			end
 		end
 	end
@@ -180,6 +196,8 @@ questFarm:Button("Select NPC", function()
 		if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("AI") then
 			if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude < 15 then
 				SelectedNPC = v.Name
+				
+				DiscordLib:Notification("Success!", "Chosen target: " .. v.Name, "Ok")
 			end
 		end
 	end
@@ -210,7 +228,7 @@ local function TriggerQuest()
 end
 
 local StartQuestFarming = false
-questFarm:Toggle("Begin Quest Farm", function()
+questFarm:Toggle("Begin Quest Farm", false, function()
 	StartQuestFarming = not StartQuestFarming
 
 	if StartQuestFarming then
@@ -234,7 +252,7 @@ questFarm:Toggle("Begin Quest Farm", function()
 									game:GetService("Players").LocalPlayer.Character.Stand:WaitForChild("HumanoidRootPart").CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
 								end
 
-								game:GetService("Players").LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = v:FindFirstChild("HumanoidRootPart").CFrame * CFrame.new(0, -6, 4, 1, 0, 0, 1)
+								game:GetService("Players").LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = v:FindFirstChild("HumanoidRootPart").CFrame * CFrame.new(0, -5, 1, 1, 0, 0, 1)
 								game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
 								if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Aura").Value == false then
 									game:GetService("Players").LocalPlayer.Character.StandEvents.Summon:FireServer()
@@ -258,27 +276,141 @@ local standFarm = serv:Channel("Stand Farm")
 
 standFarm:Label("Coming soon!")
 
+local itemFarm = serv:Channel("Item Farm")
+
+itemFarm:Label("Coming soon!")
+
+
 local teleports = serv:Channel("Teleports")
 
---[[
-teleports:Label("TP To Player")
+teleports:Label("Player Teleports")
 
-teleports:TextBox("Teleport To", "Player Name here", true, function(A)
-	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Players")[A].Character.HumanoidRootPart.CFrame
+teleports:Textbox("Teleport To", "Player name here", true, function(A)
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Players"):FindFirstChild(tostring(A)).Character.HumanoidRootPart.CFrame
 	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
 		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
 	end
 end)
 
-teleports:TextBox("Teleport Above", "Player Name here", true, function(A)
-	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Players")[A].Character.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0)
+teleports:Textbox("Teleport Above", "Player name here", true, function(A)
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Players"):FindFirstChild(tostring(A)).Character.HumanoidRootPart.CFrame * CFrame.new(0, 25, 0)
 	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
 		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
 	end
 end)
 
-]]
-teleports:Label("TP To Boss")
+teleports:Seperator()
+
+teleports:Label("Quest Teleports")
+
+teleports:Button("Giorno Giovanna [Level 1+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-661.405029, 67.1819992, -797.159973)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Scared Noob [Level 10+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-703.195679, 67.1782303, -1013.146)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Koichi Hirose [Level 20+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-181.556412, 66.7327728, -585.154663)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("aLLmemester [Level 30+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-639.151245, 66.9135437, -460.119171)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Okuyasu [Level 40+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-510.674011, 67.1819992, -999.445007)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Joseph Joestar [Level 50+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-82.8209991, 67.0810013, -825.888977)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Josuke Higashikata [Level 75+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-492.863983, 67.1782379, -710.836853)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Rohan Kishibe [Level 100+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-303.60437, 67.0773239, -713.353333)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("DIO [Level 125+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-426.132996, 67.1269989, -123.800003)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Muhammad Avdol [Level 150+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-242.013214, 67.0773315, -215.973175)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Giorno Giovanna [Level 175+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-491.130524, 67.1677094, -33.4819489)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Will Anthonio Zeppeli [Level 200+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-5181.75, -449.374115, -3817.55981)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Young Joseph [Level 275+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-679.927979, 66.6819992, -189.617009)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Diavolo [Level 500+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-734.86499, 66.685997, -439.040009)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("Staticaliza [Level 1000+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-644.219666, 66.7231827, 79.3064728)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Seperator()
+
+teleports:Label("Map Teleports")
 
 teleports:Button("D4C Dimension", function()
 	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(11927.1, -3.28935, -4488.59)
@@ -377,5 +509,18 @@ teleports:Button("Gyro Zeppeli", function()
 		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
 	end
 end)
+
+teleports:Button("Moped", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-745.187439, 67.2840881, -591.28363)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Seperator()
+
+teleports:Label("Lair Teleports")
+
+teleports:Label("coming soon")
 
 --win:Server("Main", "http://www.roblox.com/asset/?id=6031075938")
