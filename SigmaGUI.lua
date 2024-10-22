@@ -1,12 +1,12 @@
 local DiscordLib = loadstring(game:HttpGet"https://raw.githubusercontent.com/dawid-scripts/UI-Libs/main/discord%20lib.txt")()
 
-local win = DiscordLib:Window("Sigma Hub V1")
+local win = DiscordLib:Window("Sigma Hub")
 
 local serv = win:Server("SU:R GUI", "")
 
 local home = serv:Channel("Home")
 
-home:Label("Welcome to Sigma Hub V1!")
+home:Label("Welcome to Sigma Hub V1.05!")
 
 home:Seperator()
 
