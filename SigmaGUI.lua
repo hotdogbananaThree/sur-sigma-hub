@@ -102,6 +102,8 @@ lairFarm:Button("Select Lair NPC", function()
 			if (game.Players.LocalPlayer.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude < 15 then
 				SelectedLairNPC = v
 				SelectedLairNPCText = v.Head:FindFirstChild("Main").Text.Text
+				
+				DiscordLib:Notification("Success!", "Chosen Lair: " .. SelectedLairNPCText, "Ok")
 			end
 		end
 	end
@@ -131,7 +133,7 @@ lairFarm:Toggle("Begin Lair Farm", false, function()
 			while StartLairFarming and task.wait() do
 				pcall(function()
 					TriggerLair()
-					game:GetService("Workspace").Living:WaitForChild("Boss")
+					game:GetService("Workspace").Living:WaitForChild("Boss", 10000)
 
 					repeat
 						task.wait()
