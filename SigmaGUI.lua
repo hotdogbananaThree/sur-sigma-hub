@@ -1,4 +1,4 @@
-local DiscordLib = loadstring(game:HttpGet"https://raw.githubusercontent.com/dawid-scripts/UI-Libs/main/discord%20lib.txt")()
+local DiscordLib = loadstring(game:HttpGet"https://raw.githubusercontent.com/hotdogbananaThree/sur-sigma-hub/refs/heads/main/discordlib.txt")()
 
 local win = DiscordLib:Window("Sigma Hub")
 
@@ -6,7 +6,7 @@ local serv = win:Server("SU:R GUI", "")
 
 local home = serv:Channel("Home")
 
-home:Label("Welcome to Sigma Hub V1.05!")
+home:Label("Welcome to Sigma Hub V1.06!")
 
 home:Seperator()
 
@@ -15,7 +15,7 @@ home:Button("About", function()
 end)
 
 home:Button("Status", function()
-	DiscordLib:Notification("Current Status", "Working!", "Ok")
+	DiscordLib:Notification("Current Status", "Working 29/04/26!", "Ok")
 end)
 
 local buttons = serv:Channel("LocalPlayer")
@@ -127,14 +127,25 @@ end
 local StartLairFarming = false
 lairFarm:Toggle("Begin Lair Farm", false, function()
 	StartLairFarming = not StartLairFarming
-
 	if StartLairFarming then
 		if SelectedLairNPC then
 			while StartLairFarming and task.wait() do
+
+				-- Respawn check OUTSIDE pcall so it can never be swallowed
+				local player = game:GetService("Players").LocalPlayer
+				if player.Character == nil or player.Character:FindFirstChild("Humanoid") == nil or player.Character.Humanoid.Health == 0 then
+					local currentChar = player.Character
+					if currentChar == nil then
+						player.CharacterAdded:Wait()
+					else
+						repeat task.wait() until player.Character ~= currentChar and player.Character ~= nil
+					end
+					task.wait(1.5) -- let character fully load
+				end
+
 				pcall(function()
 					TriggerLair()
 					game:GetService("Workspace").Living:WaitForChild("Boss", 10000)
-
 					repeat
 						task.wait()
 						pcall(function()
@@ -151,13 +162,21 @@ lairFarm:Toggle("Begin Lair Farm", false, function()
 							if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
 								game:GetService("Players").LocalPlayer.Character.Stand:WaitForChild("HumanoidRootPart").CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
 							end
-
 							game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
 							workspace.Living:FindFirstChild("Boss").Humanoid.Health = 0
-							game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").Living:FindFirstChild("Boss"):WaitForChild("HumanoidRootPart").CFrame * CFrame.new(0, -6, 4, 1, 0, 0, 1)
+							game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").Living:FindFirstChild("Boss"):WaitForChild("HumanoidRootPart").CFrame * CFrame.new(0, -7, 4, 1, 0, 0, 1)
 							repeat workspace.Living:FindFirstChild("Boss").Humanoid.Health = 0 until workspace.Living:FindFirstChild("Boss").Humanoid.Health == 0
 						end)
-					until not workspace.Living:FindFirstChild("Boss") or game:GetService("Players").LocalPlayer.Character:FindFirstChild("Humanoid").Health == 0 or StartLairFarming == false
+					until not workspace.Living:FindFirstChild("Boss") or player.Character:FindFirstChild("Humanoid").Health == 0 or StartLairFarming == false
+
+					pcall(function()
+						local hrp = player.Character.HumanoidRootPart
+						local npcRoot = SelectedLairNPC:FindFirstChild("HumanoidRootPart")
+							or SelectedLairNPC:FindFirstChildWhichIsA("BasePart")
+							or SelectedLairNPC
+						hrp.CFrame = npcRoot.CFrame * CFrame.new(0, 0, 4)
+					end)
+
 					wait(1)
 				end)
 			end
