@@ -6,7 +6,7 @@ local serv = win:Server("SU:R GUI", "")
 
 local home = serv:Channel("Home")
 
-home:Label("Welcome to Sigma Hub V1.06!")
+home:Label("Welcome to Sigma Hub V1.05!")
 
 home:Seperator()
 
@@ -15,7 +15,7 @@ home:Button("About", function()
 end)
 
 home:Button("Status", function()
-	DiscordLib:Notification("Current Status", "Working 29/04/26!", "Ok")
+	DiscordLib:Notification("Current Status", "Working!", "Ok")
 end)
 
 local buttons = serv:Channel("LocalPlayer")
@@ -88,7 +88,7 @@ end)
 local lairFarm = serv:Channel("Lair Farm")
 
 lairFarm:Button("Tutorial", function()
-	DiscordLib:Notification("Tutorial", "Stand near Lair NPC and press 'Select Lair NPC'", "Ok")
+	DiscordLib:Notification("Tutorial", "Stand near Lair NPC and press 'Select Lair NPC.' A stand like THR is recommended for this action.", "Ok")
 end)
 
 lairFarm:Seperator()
@@ -542,6 +542,41 @@ teleports:Seperator()
 
 teleports:Label("Lair Teleports")
 
-teleports:Label("coming soon")
+teleports:Button("i_stabman [Level. 15+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-727.007, 67.077, -939)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("i_stabman [Level. 40+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-730.839, 67.178, -387.32)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("i_stabman [Level. 80+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-326.288, 67.123, -131.778)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("i_stabman [Level. 100+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-90.179, 67.182, -884.981)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("i_stabman [Level. 200+]", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(28082.211, 47.423, -234.006)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Label("LEVEL 500+ LAIR CURRENTLY REMOVED")
 
 --win:Server("Main", "http://www.roblox.com/asset/?id=6031075938")
