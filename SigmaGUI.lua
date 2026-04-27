@@ -6,7 +6,7 @@ local serv = win:Server("SU:R GUI", "")
 
 local home = serv:Channel("Home")
 
-home:Label("Welcome to Sigma Hub V1.08!")
+home:Label("Welcome to Sigma Hub V1.09!")
 
 home:Seperator()
 
@@ -131,6 +131,7 @@ lairFarm:Toggle("Begin Lair Farm", false, function()
 		if SelectedLairNPC then
 			while StartLairFarming and task.wait() do
 				local player = game:GetService("Players").LocalPlayer
+				local lastActivity = tick()
 
 				pcall(function()
 					TriggerLair()
@@ -141,6 +142,8 @@ lairFarm:Toggle("Begin Lair Farm", false, function()
 						pcall(function()
 							local char = player.Character
 							if not char then return end
+
+							lastActivity = tick() -- update watchdog
 
 							for i, v in pairs(player.PlayerGui.CDgui.fortnite:GetChildren()) do
 								if v:IsA("Frame") and v.Textt.Text == "Punch" then
@@ -164,12 +167,11 @@ lairFarm:Toggle("Begin Lair Farm", false, function()
 					until not workspace.Living:FindFirstChild("Boss") or StartLairFarming == false
 
 					-- Boss is dead, wait for the game to teleport us back naturally
-					-- Detect when we are no longer stuck/frozen in the lair
 					local startWait = tick()
 					repeat
 						task.wait(0.5)
+						lastActivity = tick() -- still active, reset watchdog
 						pcall(function()
-							-- Keep unstucking the player while waiting for teleport
 							local char = player.Character
 							if char and char:FindFirstChild("HumanoidRootPart") then
 								char.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
@@ -180,6 +182,19 @@ lairFarm:Toggle("Begin Lair Farm", false, function()
 
 					task.wait(1)
 				end)
+
+				-- Watchdog: if nothing happened for 30 seconds, force restart
+				if tick() - lastActivity > 30 and StartLairFarming then
+					warn("Lair farm watchdog triggered, restarting...")
+					pcall(function()
+						local char = player.Character
+						if char and char:FindFirstChild("HumanoidRootPart") then
+							char.HumanoidRootPart.Anchored = false
+							char.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+						end
+					end)
+					task.wait(1)
+				end
 			end
 		else
 			DiscordLib:Notification("Error!", "You are missing a step! Check the tutorial!", "Ok")
