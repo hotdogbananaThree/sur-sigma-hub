@@ -6,7 +6,7 @@ local serv = win:Server("SU:R GUI", "")
 
 local home = serv:Channel("Home")
 
-home:Label("Welcome to Sigma Hub V1.05!")
+home:Label("Welcome to Sigma Hub V1.08!")
 
 home:Seperator()
 
@@ -15,7 +15,7 @@ home:Button("About", function()
 end)
 
 home:Button("Status", function()
-	DiscordLib:Notification("Current Status", "Working!", "Ok")
+	DiscordLib:Notification("Current Status", "Working 27/04/26!", "Ok")
 end)
 
 local buttons = serv:Channel("LocalPlayer")
@@ -130,54 +130,55 @@ lairFarm:Toggle("Begin Lair Farm", false, function()
 	if StartLairFarming then
 		if SelectedLairNPC then
 			while StartLairFarming and task.wait() do
-
-				-- Respawn check OUTSIDE pcall so it can never be swallowed
 				local player = game:GetService("Players").LocalPlayer
-				if player.Character == nil or player.Character:FindFirstChild("Humanoid") == nil or player.Character.Humanoid.Health == 0 then
-					local currentChar = player.Character
-					if currentChar == nil then
-						player.CharacterAdded:Wait()
-					else
-						repeat task.wait() until player.Character ~= currentChar and player.Character ~= nil
-					end
-					task.wait(1.5) -- let character fully load
-				end
 
 				pcall(function()
 					TriggerLair()
 					game:GetService("Workspace").Living:WaitForChild("Boss", 10000)
+
 					repeat
 						task.wait()
 						pcall(function()
-							for i, v in pairs(game:GetService("Players").LocalPlayer.PlayerGui.CDgui.fortnite:GetChildren()) do
+							local char = player.Character
+							if not char then return end
+
+							for i, v in pairs(player.PlayerGui.CDgui.fortnite:GetChildren()) do
 								if v:IsA("Frame") and v.Textt.Text == "Punch" then
 									-- Polar Was Here!
 								else
-									game:GetService("Players").LocalPlayer.Character.StandEvents.M1:FireServer()
+									char.StandEvents.M1:FireServer()
 								end
 							end
-							if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Aura").Value == false then
-								game:GetService("Players").LocalPlayer.Character.StandEvents.Summon:FireServer()
+							if char:FindFirstChild("Aura") and char.Aura.Value == false then
+								char.StandEvents.Summon:FireServer()
 							end
-							if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
-								game:GetService("Players").LocalPlayer.Character.Stand:WaitForChild("HumanoidRootPart").CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+							if char:FindFirstChild("Stand") then
+								char.Stand:WaitForChild("HumanoidRootPart").CFrame = char.HumanoidRootPart.CFrame
 							end
-							game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+
+							char.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
 							workspace.Living:FindFirstChild("Boss").Humanoid.Health = 0
-							game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").Living:FindFirstChild("Boss"):WaitForChild("HumanoidRootPart").CFrame * CFrame.new(0, -7, 4, 1, 0, 0, 1)
+							char.HumanoidRootPart.CFrame = workspace.Living:FindFirstChild("Boss"):WaitForChild("HumanoidRootPart").CFrame * CFrame.new(0, -7, 4, 1, 0, 0, 1)
 							repeat workspace.Living:FindFirstChild("Boss").Humanoid.Health = 0 until workspace.Living:FindFirstChild("Boss").Humanoid.Health == 0
 						end)
-					until not workspace.Living:FindFirstChild("Boss") or player.Character:FindFirstChild("Humanoid").Health == 0 or StartLairFarming == false
+					until not workspace.Living:FindFirstChild("Boss") or StartLairFarming == false
 
-					pcall(function()
-						local hrp = player.Character.HumanoidRootPart
-						local npcRoot = SelectedLairNPC:FindFirstChild("HumanoidRootPart")
-							or SelectedLairNPC:FindFirstChildWhichIsA("BasePart")
-							or SelectedLairNPC
-						hrp.CFrame = npcRoot.CFrame * CFrame.new(0, 0, 4)
-					end)
+					-- Boss is dead, wait for the game to teleport us back naturally
+					-- Detect when we are no longer stuck/frozen in the lair
+					local startWait = tick()
+					repeat
+						task.wait(0.5)
+						pcall(function()
+							-- Keep unstucking the player while waiting for teleport
+							local char = player.Character
+							if char and char:FindFirstChild("HumanoidRootPart") then
+								char.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+								char.HumanoidRootPart.Anchored = false
+							end
+						end)
+					until not workspace.Living:FindFirstChild("Boss") and tick() - startWait > 2 or StartLairFarming == false
 
-					wait(1)
+					task.wait(1)
 				end)
 			end
 		else
