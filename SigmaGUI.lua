@@ -6,7 +6,7 @@ local serv = win:Server("SU:R GUI", "")
 
 local home = serv:Channel("Home")
 
-home:Label("Welcome to Sigma Hub V1.09!")
+home:Label("Welcome to Sigma Hub V1.1!")
 
 home:Seperator()
 
@@ -15,7 +15,7 @@ home:Button("About", function()
 end)
 
 home:Button("Status", function()
-	DiscordLib:Notification("Current Status", "Working 27/04/26!", "Ok")
+	DiscordLib:Notification("Current Status", "Working 28/04/26!", "Ok")
 end)
 
 local buttons = serv:Channel("LocalPlayer")
@@ -125,81 +125,88 @@ function TriggerLair()
 end
 
 local StartLairFarming = false
+local lastActivity = tick()
+local lairFarmToggleCallback = nil
+
 lairFarm:Toggle("Begin Lair Farm", false, function()
-	StartLairFarming = not StartLairFarming
-	if StartLairFarming then
-		if SelectedLairNPC then
-			while StartLairFarming and task.wait() do
-				local player = game:GetService("Players").LocalPlayer
-				local lastActivity = tick()
+	lairFarmToggleCallback = function()
+		StartLairFarming = not StartLairFarming
+		if StartLairFarming then
+			if SelectedLairNPC then
 
-				pcall(function()
-					TriggerLair()
-					game:GetService("Workspace").Living:WaitForChild("Boss", 10000)
-
-					repeat
-						task.wait()
-						pcall(function()
-							local char = player.Character
-							if not char then return end
-
-							lastActivity = tick() -- update watchdog
-
-							for i, v in pairs(player.PlayerGui.CDgui.fortnite:GetChildren()) do
-								if v:IsA("Frame") and v.Textt.Text == "Punch" then
-									-- Polar Was Here!
-								else
-									char.StandEvents.M1:FireServer()
-								end
-							end
-							if char:FindFirstChild("Aura") and char.Aura.Value == false then
-								char.StandEvents.Summon:FireServer()
-							end
-							if char:FindFirstChild("Stand") then
-								char.Stand:WaitForChild("HumanoidRootPart").CFrame = char.HumanoidRootPart.CFrame
-							end
-
-							char.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
-							workspace.Living:FindFirstChild("Boss").Humanoid.Health = 0
-							char.HumanoidRootPart.CFrame = workspace.Living:FindFirstChild("Boss"):WaitForChild("HumanoidRootPart").CFrame * CFrame.new(0, -7, 4, 1, 0, 0, 1)
-							repeat workspace.Living:FindFirstChild("Boss").Humanoid.Health = 0 until workspace.Living:FindFirstChild("Boss").Humanoid.Health == 0
-						end)
-					until not workspace.Living:FindFirstChild("Boss") or StartLairFarming == false
-
-					-- Boss is dead, wait for the game to teleport us back naturally
-					local startWait = tick()
-					repeat
-						task.wait(0.5)
-						lastActivity = tick() -- still active, reset watchdog
-						pcall(function()
-							local char = player.Character
-							if char and char:FindFirstChild("HumanoidRootPart") then
-								char.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
-								char.HumanoidRootPart.Anchored = false
-							end
-						end)
-					until not workspace.Living:FindFirstChild("Boss") and tick() - startWait > 2 or StartLairFarming == false
-
-					task.wait(1)
+				task.spawn(function()
+					while StartLairFarming do
+						task.wait(5)
+						if tick() - lastActivity > 60 and StartLairFarming then
+							warn("Lair farm watchdog triggered, restarting...")
+							StartLairFarming = false
+							task.wait(2)
+							lastActivity = tick()
+							lairFarmToggleCallback()
+						end
+					end
 				end)
 
-				-- Watchdog: if nothing happened for 30 seconds, force restart
-				if tick() - lastActivity > 30 and StartLairFarming then
-					warn("Lair farm watchdog triggered, restarting...")
+				while StartLairFarming and task.wait() do
+					local player = game:GetService("Players").LocalPlayer
+
 					pcall(function()
-						local char = player.Character
-						if char and char:FindFirstChild("HumanoidRootPart") then
-							char.HumanoidRootPart.Anchored = false
-							char.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
-						end
+						TriggerLair()
+						lastActivity = tick()
+						game:GetService("Workspace").Living:WaitForChild("Boss", 10000)
+
+						repeat
+							task.wait()
+							pcall(function()
+								local char = player.Character
+								if not char then return end
+
+								lastActivity = tick()
+
+								for i, v in pairs(player.PlayerGui.CDgui.fortnite:GetChildren()) do
+									if v:IsA("Frame") and v.Textt.Text == "Punch" then
+										-- Polar Was Here!
+									else
+										char.StandEvents.M1:FireServer()
+									end
+								end
+								if char:FindFirstChild("Aura") and char.Aura.Value == false then
+									char.StandEvents.Summon:FireServer()
+								end
+								if char:FindFirstChild("Stand") then
+									char.Stand:WaitForChild("HumanoidRootPart").CFrame = char.HumanoidRootPart.CFrame
+								end
+
+								char.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+								workspace.Living:FindFirstChild("Boss").Humanoid.Health = 0
+								char.HumanoidRootPart.CFrame = workspace.Living:FindFirstChild("Boss"):WaitForChild("HumanoidRootPart").CFrame * CFrame.new(0, -7, 4, 1, 0, 0, 1)
+								repeat workspace.Living:FindFirstChild("Boss").Humanoid.Health = 0 until workspace.Living:FindFirstChild("Boss").Humanoid.Health == 0
+							end)
+						until not workspace.Living:FindFirstChild("Boss") or StartLairFarming == false
+
+						local startWait = tick()
+						repeat
+							task.wait(0.5)
+							lastActivity = tick()
+							pcall(function()
+								local char = player.Character
+								if char and char:FindFirstChild("HumanoidRootPart") then
+									char.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+									char.HumanoidRootPart.Anchored = false
+								end
+							end)
+						until not workspace.Living:FindFirstChild("Boss") and tick() - startWait > 2 or StartLairFarming == false
+
+						lastActivity = tick() -- reset after lair ends so transition time is not counted
+						task.wait(1)
 					end)
-					task.wait(1)
 				end
+			else
+				DiscordLib:Notification("Error!", "You are missing a step! Check the tutorial!", "Ok")
 			end
-		else
-			DiscordLib:Notification("Error!", "You are missing a step! Check the tutorial!", "Ok")
 		end
 	end
+	lairFarmToggleCallback()
 end)
 
 local questFarm = serv:Channel("Quest Farm")
