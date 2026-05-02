@@ -6,7 +6,7 @@ local serv = win:Server("SU:R GUI", "")
 
 local home = serv:Channel("Home")
 
-home:Label("Welcome to Sigma Hub V1.1!")
+home:Label("Welcome to Sigma Hub V1.2!")
 
 home:Seperator()
 
@@ -15,7 +15,7 @@ home:Button("About", function()
 end)
 
 home:Button("Status", function()
-	DiscordLib:Notification("Current Status", "Working 28/04/26!", "Ok")
+	DiscordLib:Notification("Current Status", "Working 2/05/26!", "Ok")
 end)
 
 local buttons = serv:Channel("LocalPlayer")
@@ -316,14 +316,219 @@ questFarm:Toggle("Begin Quest Farm", false, function()
 	end
 end)
 
-local standFarm = serv:Channel("Stand Farm")
+local StandFarm = false
+local IgnoredStands = {}
+local IgnoredAttributes = {}
+local SelectedArrow = nil
 
-standFarm:Label("Coming soon!")
+local standDrops = serv:Channel("Stand Farm")
+
+standDrops:Button("Tutorial", function()
+	DiscordLib:Notification("Tutorial", "Step 1: Select the stand(s) you would like to keep. Step 2: Select the attribute(s) you would like to keep. Step 3: Start the auto-farm. Step 4: Wait until the stand farm automatically stops!", "Ok")
+end)
+
+standDrops:Seperator()
+
+-- Arrow selection dropdown
+local arrowDrop = standDrops:Dropdown(
+    "Select Arrow/Item",
+    {"Stand Arrow", "Charged Arrow", "Kars Mask", "Anubis Mask"},
+    function(selected)
+        SelectedArrow = selected
+        print("Selected: " .. selected)
+    end
+)
+
+-- Build stands list from StandNameConvert, sorted and deduplicated
+local standNames = {}
+local seenStands = {}
+for _, v in pairs(game.ReplicatedStorage.StandNameConvert:GetChildren()) do
+    if v:IsA("StringValue") and not seenStands[v.Value:lower()] then
+        table.insert(standNames, v.Value)
+        seenStands[v.Value:lower()] = true
+    end
+end
+table.sort(standNames, function(a, b) return a:lower() < b:lower() end)
+
+-- Stands to keep dropdown
+local standIgnoreDrop = standDrops:Dropdown(
+    "Stands to Keep",
+    standNames,
+    function(selectedStand)
+        if selectedStand and not table.find(IgnoredStands, selectedStand) then
+            table.insert(IgnoredStands, selectedStand)
+            print("Keeping stand: " .. selectedStand)
+        end
+    end
+)
+
+standDrops:Button("Clear Stands to Keep", function()
+    IgnoredStands = {}
+    print("Stands to keep list cleared")
+	DiscordLib:Notification("Success!", "Cleared stands ignore list.", "Ok")
+end)
+
+-- Attributes to keep dropdown
+local attributeNames = {"None", "Strong", "Tough", "Sloppy", "Powerful", "Manic", "Enrage", "Lethargic", "Godly", "Daemon", "Glass Cannon", "Invincible", "Scourge", "Tragic", "Hacker", "Legendary"}
+
+local attributeIgnoreDrop = standDrops:Dropdown(
+    "Attributes to Keep",
+    attributeNames,
+    function(selectedAttribute)
+        if selectedAttribute and not table.find(IgnoredAttributes, selectedAttribute) then
+            table.insert(IgnoredAttributes, selectedAttribute)
+            print("Keeping attribute: " .. selectedAttribute)
+        end
+    end
+)
+
+standDrops:Button("Clear Attributes to Keep", function()
+    IgnoredAttributes = {}
+    print("Attributes to keep list cleared")
+	DiscordLib:Notification("Success!", "Cleared attributes ignore list.", "Ok")
+end)
+
+local function GetCurrentStandName()
+    local text = game:GetService("Players").LocalPlayer.PlayerGui.newStatsGUI.StatsMenu.StandName["_Background"].TextLabel.Text
+    return text:gsub("Stand: ", "")
+end
+
+local function GetCurrentAttribute()
+    local text = game:GetService("Players").LocalPlayer.PlayerGui.newStatsGUI.StatsMenu.AttributeName["_Background"].TextLabel.Text
+    return text:gsub("Attribute: ", "")
+end
+
+local function ShouldStop()
+    local currentStand = GetCurrentStandName():lower()
+    local currentAttribute = GetCurrentAttribute():lower()
+
+    local standMatches = false
+    for _, ignoredStand in pairs(IgnoredStands) do
+        if currentStand == ignoredStand:lower() then
+            standMatches = true
+            break
+        end
+    end
+
+    local attributeMatches = false
+    for _, ignoredAttribute in pairs(IgnoredAttributes) do
+        if currentAttribute == ignoredAttribute:lower() then
+            attributeMatches = true
+            break
+        end
+    end
+
+    local hasStandList = #IgnoredStands > 0
+    local hasAttributeList = #IgnoredAttributes > 0
+
+    -- Only stand list filled
+    if hasStandList and not hasAttributeList then
+        return standMatches, "stand"
+    end
+
+    -- Only attribute list filled
+    if hasAttributeList and not hasStandList then
+        return attributeMatches, "attribute"
+    end
+
+    -- Both lists filled: BOTH must match
+    if hasStandList and hasAttributeList then
+        return standMatches and attributeMatches, "both"
+    end
+
+    -- Both lists empty, never stop
+    return false, nil
+end
+
+local itemFireNames = {
+    ["Stand Arrow"] = "Stand Arrow",
+    ["Charged Arrow"] = "Charged Arrow",
+    ["Kars Mask"] = "Kars Mask",
+    ["Anubis Mask"] = "Anubis Mask",
+}
+
+standDrops:Toggle("Begin Stand Farm", false, function()
+    StandFarm = not StandFarm
+    if StandFarm then
+
+        if not SelectedArrow then
+            DiscordLib:Notification("Error!", "Please select an arrow/item before starting!", "Ok")
+            StandFarm = false
+            return
+        end
+
+        local player = game:GetService("Players").LocalPlayer
+        if not player.Backpack:FindFirstChild(SelectedArrow) and not player.Character:FindFirstChild(SelectedArrow) then
+            DiscordLib:Notification("Error!", "You do not have any " .. SelectedArrow .. "s in your inventory!", "Ok")
+            StandFarm = false
+            return
+        end
+
+        local lastActivity = tick()
+
+        task.spawn(function()
+            while StandFarm do
+                task.wait(5)
+                if tick() - lastActivity > 60 and StandFarm then
+                    warn("Stand farm watchdog triggered, restarting...")
+                    lastActivity = tick()
+                end
+            end
+        end)
+
+        while StandFarm and task.wait() do
+            pcall(function()
+                if not player.Backpack:FindFirstChild(SelectedArrow) and not player.Character:FindFirstChild(SelectedArrow) then
+                    DiscordLib:Notification("Error!", "You have run out of " .. SelectedArrow .. "s!", "Ok")
+                    StandFarm = false
+                    return
+                end
+
+                local item = player.Backpack:FindFirstChild(SelectedArrow) or player.Character:FindFirstChild(SelectedArrow)
+                if item then
+                    player.Character.Humanoid:EquipTool(item)
+                    task.wait(0.1)
+                    game.ReplicatedStorage.Events.UseItem:FireServer(itemFireNames[SelectedArrow])
+                    lastActivity = tick()
+                end
+
+                task.wait(4.5)
+
+                local shouldStop, reason = ShouldStop()
+                if shouldStop then
+                    if reason == "stand" then
+                        DiscordLib:Notification("Stand Found!", "Stopped farming, you got: " .. GetCurrentStandName(), "Ok")
+                    elseif reason == "attribute" then
+                        DiscordLib:Notification("Attribute Found!", "Stopped farming, got " .. GetCurrentAttribute() .. " on " .. GetCurrentStandName(), "Ok")
+                    elseif reason == "both" then
+                        DiscordLib:Notification("Stand Found!", "Stopped farming, got " .. GetCurrentAttribute() .. " " .. GetCurrentStandName(), "Ok")
+                    end
+                    StandFarm = false
+                else
+                    if player.Backpack:FindFirstChild("Rokakaka") then
+                        player.Character.Humanoid:EquipTool(player.Backpack:FindFirstChild("Rokakaka"))
+                        task.wait(0.1)
+                        game.ReplicatedStorage.Events.UseItem:FireServer("Rokakakaka")
+                        lastActivity = tick()
+                    else
+                        DiscordLib:Notification("Error!", "You have run out of Rokakaka!", "Ok")
+                        StandFarm = false
+                    end
+                end
+
+                task.wait(1)
+            end)
+        end
+    end
+end)
+
+standDrops:Button("DISCLAIMER", function()
+	DiscordLib:Notification("DISCLAIMER", "Be aware that this WILL ignore the automatic 'Are you sure you want to roka?' pop-up.", "Ok")
+end)
 
 local itemFarm = serv:Channel("Item Farm")
 
 itemFarm:Label("Coming soon!")
-
 
 local teleports = serv:Channel("Teleports")
 
@@ -445,7 +650,7 @@ teleports:Button("Diavolo [Level 500+]", function()
 	end
 end)
 
-teleports:Button("Staticaliza [Level 1000+]", function()
+teleports:Button("Staticaliza [Level 1000+] (currently in the pillar)", function()
 	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-644.219666, 66.7231827, 79.3064728)
 	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
 		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
@@ -471,6 +676,13 @@ teleports:Button("Rarity Boards", function()
 end)
 
 teleports:Button("Stand Storage Room", function()
+	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(3298.935, 97.45, -157.17)
+	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
+		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
+	end
+end)
+
+teleports:Button("OLD Stand Storage Room (unavailable)", function()
 	game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-393.893, 23.5808, -280.786)
 	if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand") then
 		game:GetService("Players").LocalPlayer.Character:FindFirstChild("Stand").HumanoidRootPart.CFrame = game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.CFrame
