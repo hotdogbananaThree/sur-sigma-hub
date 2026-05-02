@@ -494,6 +494,7 @@ standDrops:Toggle("Begin Stand Farm", false, function()
 
                 task.wait(4.5)
 
+				task.wait(0.75)
                 local shouldStop, reason = ShouldStop()
                 if shouldStop then
                     if reason == "stand" then
